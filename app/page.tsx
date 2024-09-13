@@ -56,9 +56,6 @@ const DraftPick = () => {
 
   return (
     <div className="p-4">
-      <Head>
-        <title>DeadlockDraft.com</title>
-      </Head>
       <h1 className="text-2xl font-bold mb-4">Deadlock Draft Pick</h1>
       <div className="flex justify-between mb-4">
         <Card className="w-1/2">
