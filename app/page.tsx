@@ -57,7 +57,7 @@ const DraftPick = () => {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Deadlock Draft Pick</h1>
       <div className="flex justify-between mb-4">
-        <Card className="w-1/3">
+        <Card className="w-1/2">
           <CardHeader>
             <h2 className="text-xl font-semibold">Team Amber</h2>
           </CardHeader>
@@ -69,7 +69,7 @@ const DraftPick = () => {
             </ul>
           </CardContent>
         </Card>
-        <Card className="w-1/3">
+        <Card className="w-1/2">
           <CardHeader>
             <h2 className="text-xl font-semibold">Team Sapphire</h2>
           </CardHeader>
