@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
+
 import Image from "next/image";
 
 const characters = [
@@ -37,14 +38,17 @@ const DraftPick = () => {
     ...characters,
   ]);
   const [draftEnded, setDraftEnded] = useState(false);
+  const [banMode, setBanMode] = useState(false);
 
   const handlePick = (character: string) => {
-    if (currentTeam === "Amber") {
-      setAmberTeam([...amberTeam, character]);
-      setCurrentTeam("Sapphire");
-    } else {
-      setSapphireTeam([...sapphireTeam, character]);
-      setCurrentTeam("Amber");
+    if (!banMode) {
+      if (currentTeam === "Amber") {
+        setAmberTeam([...amberTeam, character]);
+        setCurrentTeam("Sapphire");
+      } else {
+        setSapphireTeam([...sapphireTeam, character]);
+        setCurrentTeam("Amber");
+      }
     }
 
     setAvailableCharacters(availableCharacters.filter((c) => c !== character));
@@ -66,7 +70,11 @@ const DraftPick = () => {
     <div className="p-4">
       <div className="flex flex-row">
         <h1 className="text-2xl font-bold mb-4">Deadlock Draft Pick</h1>{" "}
-        <Button onClick={reset} className="ml-4 text-xl font-semibold" style={{backgroundColor: 'red'}}>
+        <Button
+          onClick={reset}
+          className="ml-4 text-xl font-semibold"
+          style={{ backgroundColor: "red" }}
+        >
           reset
         </Button>
       </div>
@@ -97,6 +105,21 @@ const DraftPick = () => {
         </Card>
       </div>
       {!draftEnded ? (
+        <div className="flex flex-row mb-4">
+          <Button
+            onClick={() => setBanMode(!banMode)}
+            className="text-xl font-semibold"
+            style={{ backgroundColor: banMode ? "red" : "green" }}
+          >
+            <h2 className="text-xl font-semibold">
+              {banMode ? "Ban" : "Pick"}
+            </h2>
+          </Button>
+          <h3 className="self-center pl-4">Toggle Pick/Ban Mode</h3>
+        </div>
+      ) : null}
+
+      {!draftEnded ? (
         <div>
           <h2 className="text-xl font-semibold mb-2">
             {currentTeam}s turn to pick
@@ -116,7 +139,6 @@ const DraftPick = () => {
                   alt={character}
                 />
               </div>
-
             ))}
           </div>
         </div>
