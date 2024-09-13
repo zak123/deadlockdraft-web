@@ -70,7 +70,7 @@ const DraftPick = () => {
           reset
         </Button>
       </div>
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between mb-4 gap-4">
         <Card className="w-1/2">
           <CardHeader>
             <h2 className="text-xl font-semibold">Amber</h2>
