@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 
 const characters = [
   "abrams",
@@ -53,9 +54,22 @@ const DraftPick = () => {
     }
   };
 
+  const reset = () => {
+    setAmberTeam([]);
+    setSapphireTeam([]);
+    setCurrentTeam("Amber");
+    setAvailableCharacters(characters);
+    setDraftEnded(false);
+  };
+
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Deadlock Draft Pick</h1>
+      <div className="flex flex-row">
+        <h1 className="text-2xl font-bold mb-4">Deadlock Draft Pick</h1>{" "}
+        <Button onClick={reset} className="ml-4 text-xl font-semibold" style={{backgroundColor: 'red'}}>
+          reset
+        </Button>
+      </div>
       <div className="flex justify-between mb-4">
         <Card className="w-1/2">
           <CardHeader>
@@ -87,22 +101,28 @@ const DraftPick = () => {
           <h2 className="text-xl font-semibold mb-2">
             {currentTeam}s turn to pick
           </h2>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10  gap-4 justify-items-center">
             {availableCharacters.map((character) => (
-              <Button
-                key={character}
+              <div
                 onClick={() => handlePick(character)}
-                variant="outline"
+                style={{ borderColor: "white", borderWidth: 2 }}
+                key={character}
               >
-                {character}
-              </Button>
+                <CardHeader>{character}</CardHeader>
+                <Image
+                  src={`./images/${character}.webp`}
+                  width={150}
+                  height={150}
+                  alt={character}
+                />
+              </div>
+
             ))}
           </div>
         </div>
       ) : (
-        <h2 className="text-xl font-semibold">Draft has ended!</h2>
+        <h2 className="text-xl font-semibold self-center">Draft has ended!</h2>
       )}
-      <h3 className="text-xl font-semibold">refresh to reset picks</h3>
     </div>
   );
 };
