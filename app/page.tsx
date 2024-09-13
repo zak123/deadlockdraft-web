@@ -37,25 +37,23 @@ const DraftPick = () => {
   const [availableCharacters, setAvailableCharacters] = useState<string[]>([
     ...characters,
   ]);
-  const [draftEnded, setDraftEnded] = useState(false);
   const [banMode, setBanMode] = useState(false);
+  const [bannedCharacters, setBannedCharacters] = useState<string[]>([]);
+
+  const draftEnded = sapphireTeam.length + amberTeam.length === 12;
 
   const handlePick = (character: string) => {
     if (!banMode) {
       if (currentTeam === "Amber") {
         setAmberTeam([...amberTeam, character]);
-        setCurrentTeam("Sapphire");
       } else {
         setSapphireTeam([...sapphireTeam, character]);
-        setCurrentTeam("Amber");
       }
+    } else {
+      setBannedCharacters([...bannedCharacters, character]);
     }
-
+    setCurrentTeam(currentTeam === "Amber" ? "Sapphire" : "Amber");
     setAvailableCharacters(availableCharacters.filter((c) => c !== character));
-
-    if (amberTeam.length + sapphireTeam.length + 1 === 12) {
-      setDraftEnded(true);
-    }
   };
 
   const reset = () => {
@@ -63,7 +61,8 @@ const DraftPick = () => {
     setSapphireTeam([]);
     setCurrentTeam("Amber");
     setAvailableCharacters(characters);
-    setDraftEnded(false);
+    setBannedCharacters([]);
+    setBanMode(false);
   };
 
   return (
@@ -119,32 +118,58 @@ const DraftPick = () => {
         </div>
       ) : null}
 
-      {!draftEnded ? (
-        <div>
-          <h2 className="text-xl font-semibold mb-2">
-            {currentTeam}s turn to pick
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10  gap-4 justify-items-center">
-            {availableCharacters.map((character) => (
-              <div
-                onClick={() => handlePick(character)}
-                style={{ borderColor: "white", borderWidth: 2 }}
-                key={character}
-              >
-                <CardHeader>{character}</CardHeader>
-                <Image
-                  src={`./images/${character}.webp`}
-                  width={150}
-                  height={150}
-                  alt={character}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <h2 className="text-xl font-semibold self-center">Draft has ended!</h2>
-      )}
+      <div>
+        {!draftEnded ? (
+          <>
+            <h2 className="text-xl font-semibold mb-2">
+              {currentTeam}s turn to pick
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10  gap-4 justify-items-center">
+              {availableCharacters.map((character) => (
+                <div
+                  onClick={() => handlePick(character)}
+                  style={{ borderColor: "white", borderWidth: 2 }}
+                  key={character}
+                >
+                  <CardHeader>{character}</CardHeader>
+                  <Image
+                    src={`./images/${character}.webp`}
+                    width={150}
+                    height={150}
+                    alt={character}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-semibold mt-4">Draft has ended</h2>
+          </>
+        )}
+
+        {bannedCharacters.length > 0 ? (
+          <>
+            <h2 className="text-xl font-semibold mt-4">Banned Characters</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 mt-4  gap-4 justify-items-center">
+              {bannedCharacters.map((character) => (
+                <div
+                  style={{ borderColor: "white", borderWidth: 2 }}
+                  key={character}
+                >
+                  <CardHeader>{character}</CardHeader>
+                  <Image
+                    src={`./images/${character}.webp`}
+                    width={150}
+                    height={150}
+                    alt={character}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </div>
     </div>
   );
 };
