@@ -6,7 +6,8 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, RotateCcw } from "lucide-react";
+import { ArrowLeft, RotateCcw, Copy, Check } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const characters = [
   "abrams", "bebop", "dynamo", "grey talon", "haze", "infernus", "ivy", "kelvin",
@@ -34,6 +35,7 @@ const DraftPick: React.FC = () => {
     bannedCharacters: [],
     banMode: false
   }]);
+  const [isCopied, setIsCopied] = useState(false);
 
   const currentState = draftStates[draftStates.length - 1];
   const { amberTeam, sapphireTeam, currentTeam, availableCharacters, bannedCharacters, banMode } = currentState;
@@ -69,13 +71,46 @@ const DraftPick: React.FC = () => {
       bannedCharacters: [],
       banMode: false
     }]);
+    setIsCopied(false);
   }, []);
 
   const undo = useCallback(() => {
     if (draftStates.length > 1) {
       setDraftStates(prevStates => prevStates.slice(0, -1));
+      setIsCopied(false);
     }
   }, [draftStates.length]);
+
+  const copyResults = useCallback(() => {
+    const results = `
+Deadlock Draft Results:
+
+Amber Team:
+${amberTeam.join(", ")}
+
+Sapphire Team:
+${sapphireTeam.join(", ")}
+
+Banned Characters:
+${bannedCharacters.length > 0 ? bannedCharacters.join(", ") : "None"}
+    `.trim();
+
+    navigator.clipboard.writeText(results).then(() => {
+      setIsCopied(true);
+      toast({
+        title: "Copied to clipboard",
+        description: "Draft results have been copied to your clipboard.",
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+      toast({
+        title: "Copy failed",
+        description: "Failed to copy results to clipboard. Please try again.",
+        variant: "destructive",
+      });
+    });
+  }, [amberTeam, sapphireTeam, bannedCharacters]);
 
   const renderTeam = useCallback((team: Team) => (
     <Card className="w-full bg-gradient-to-br from-slate-800 to-slate-900 border-none shadow-lg">
@@ -170,8 +205,25 @@ const DraftPick: React.FC = () => {
         <>
           <Card className="bg-gradient-to-br from-green-500 to-emerald-700 border-none shadow-lg p-6 text-center mb-6">
             <h2 className="text-3xl font-bold text-white">Draft has ended</h2>
-            <p className="text-white mt-2">Congratulations to both teams!</p>
+            <p className="text-white mt-2">Good luck have fun!</p>
           </Card>
+
+          <Button 
+            onClick={copyResults} 
+            variant="outline" 
+            size="lg" 
+            className="w-full mb-6"
+          >
+            {isCopied ? (
+              <>
+                <Check className="mr-2 h-4 w-4" /> Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="mr-2 h-4 w-4" /> Copy Results
+              </>
+            )}
+          </Button>
 
           {bannedCharacters.length > 0 && (
             <div className="mt-6">
