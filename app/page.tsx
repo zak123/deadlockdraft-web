@@ -142,7 +142,7 @@ const DraftPick: React.FC = () => {
         <>
           <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
             <h2 className="text-2xl font-semibold mb-2 sm:mb-0">
-              {currentTeam}'s turn to {banMode ? 'ban' : 'pick'}
+              {currentTeam}s turn to {banMode ? 'ban' : 'pick'}
             </h2>
             <Button
               onClick={toggleBanMode}
