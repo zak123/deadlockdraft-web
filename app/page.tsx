@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import Head from "next/head";
 
 const characters = [
   "abrams",
@@ -55,11 +56,14 @@ const DraftPick = () => {
 
   return (
     <div className="p-4">
+      <Head>
+        <title>DeadlockDraft.com</title>
+      </Head>
       <h1 className="text-2xl font-bold mb-4">Deadlock Draft Pick</h1>
       <div className="flex justify-between mb-4">
         <Card className="w-1/2">
           <CardHeader>
-            <h2 className="text-xl font-semibold">Team Amber</h2>
+            <h2 className="text-xl font-semibold">Amber</h2>
           </CardHeader>
           <CardContent>
             <ul>
@@ -71,7 +75,7 @@ const DraftPick = () => {
         </Card>
         <Card className="w-1/2">
           <CardHeader>
-            <h2 className="text-xl font-semibold">Team Sapphire</h2>
+            <h2 className="text-xl font-semibold">Sapphire</h2>
           </CardHeader>
           <CardContent>
             <ul>
@@ -102,6 +106,7 @@ const DraftPick = () => {
       ) : (
         <h2 className="text-xl font-semibold">Draft has ended!</h2>
       )}
+      <h3 className="text-xl font-semibold">refresh to reset picks</h3>
     </div>
   );
 };
