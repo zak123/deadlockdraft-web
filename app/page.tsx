@@ -1,175 +1,186 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-
 import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, RotateCcw } from "lucide-react";
 
 const characters = [
-  "abrams",
-  "bebop",
-  "dynamo",
-  "grey talon",
-  "haze",
-  "infernus",
-  "ivy",
-  "kelvin",
-  "lady geist",
-  "lash",
-  "mcginnis",
-  "mo krill",
-  "paradox",
-  "pocket",
-  "seven",
-  "shiv",
-  "vindicta",
-  "viscous",
-  "warden",
-  "wraith",
-  "yamato",
+  "abrams", "bebop", "dynamo", "grey talon", "haze", "infernus", "ivy", "kelvin",
+  "lady geist", "lash", "mcginnis", "mo krill", "paradox", "pocket", "seven",
+  "shiv", "vindicta", "viscous", "warden", "wraith", "yamato"
 ];
 
-const DraftPick = () => {
-  const [amberTeam, setAmberTeam] = useState<string[]>([]);
-  const [sapphireTeam, setSapphireTeam] = useState<string[]>([]);
-  const [currentTeam, setCurrentTeam] = useState<string>("Amber");
-  const [availableCharacters, setAvailableCharacters] = useState<string[]>([
-    ...characters,
-  ]);
-  const [banMode, setBanMode] = useState(false);
-  const [bannedCharacters, setBannedCharacters] = useState<string[]>([]);
+type Team = "Amber" | "Sapphire";
+
+interface DraftState {
+  amberTeam: string[];
+  sapphireTeam: string[];
+  currentTeam: Team;
+  availableCharacters: string[];
+  bannedCharacters: string[];
+  banMode: boolean;
+}
+
+const DraftPick: React.FC = () => {
+  const [draftStates, setDraftStates] = useState<DraftState[]>([{
+    amberTeam: [],
+    sapphireTeam: [],
+    currentTeam: "Amber",
+    availableCharacters: [...characters],
+    bannedCharacters: [],
+    banMode: false
+  }]);
+
+  const currentState = draftStates[draftStates.length - 1];
+  const { amberTeam, sapphireTeam, currentTeam, availableCharacters, bannedCharacters, banMode } = currentState;
 
   const draftEnded = sapphireTeam.length + amberTeam.length === 12;
 
-  const handlePick = (character: string) => {
-    if (!banMode) {
-      if (currentTeam === "Amber") {
-        setAmberTeam([...amberTeam, character]);
-      } else {
-        setSapphireTeam([...sapphireTeam, character]);
-      }
-    } else {
-      setBannedCharacters([...bannedCharacters, character]);
-    }
-    setCurrentTeam(currentTeam === "Amber" ? "Sapphire" : "Amber");
-    setAvailableCharacters(availableCharacters.filter((c) => c !== character));
-  };
+  const updateDraftState = useCallback((updater: (prevState: DraftState) => DraftState) => {
+    setDraftStates(prevStates => [...prevStates, updater(prevStates[prevStates.length - 1])]);
+  }, []);
 
-  const reset = () => {
-    setAmberTeam([]);
-    setSapphireTeam([]);
-    setCurrentTeam("Amber");
-    setAvailableCharacters(characters);
-    setBannedCharacters([]);
-    setBanMode(false);
-  };
+  const handlePick = useCallback((character: string) => {
+    updateDraftState(prevState => ({
+      ...prevState,
+      [banMode ? 'bannedCharacters' : `${currentTeam.toLowerCase()}Team`]: [
+        ...prevState[banMode ? 'bannedCharacters' : `${currentTeam.toLowerCase()}Team` as keyof DraftState] as string[],
+        character
+      ],
+      currentTeam: prevState.currentTeam === "Amber" ? "Sapphire" : "Amber",
+      availableCharacters: prevState.availableCharacters.filter(c => c !== character)
+    }));
+  }, [banMode, currentTeam, updateDraftState]);
+
+  const toggleBanMode = useCallback(() => {
+    updateDraftState(prevState => ({ ...prevState, banMode: !prevState.banMode }));
+  }, [updateDraftState]);
+
+  const reset = useCallback(() => {
+    setDraftStates([{
+      amberTeam: [],
+      sapphireTeam: [],
+      currentTeam: "Amber",
+      availableCharacters: [...characters],
+      bannedCharacters: [],
+      banMode: false
+    }]);
+  }, []);
+
+  const undo = useCallback(() => {
+    if (draftStates.length > 1) {
+      setDraftStates(prevStates => prevStates.slice(0, -1));
+    }
+  }, [draftStates.length]);
+
+  const renderTeam = useCallback((team: Team) => (
+    <Card className="w-full bg-gradient-to-br from-slate-800 to-slate-900 border-none shadow-lg">
+      <CardHeader className="pb-2">
+        <h2 className="text-2xl font-bold text-center text-white">{team}</h2>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-2">
+          {(team === "Amber" ? amberTeam : sapphireTeam).map((character, index) => (
+            <Badge key={index} variant="secondary" className="text-sm py-1 px-2">
+              {character}
+            </Badge>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  ), [amberTeam, sapphireTeam]);
+
+  const renderCharacterGrid = useCallback((characters: string[], onClick?: (character: string) => void) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 justify-items-center">
+      {characters.map((character) => (
+        <div
+          onClick={() => onClick && onClick(character)}
+          className={`relative group ${onClick ? 'cursor-pointer' : ''} transition-transform duration-200 ease-in-out transform hover:scale-105`}
+          key={character}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-0 group-hover:opacity-70 transition-opacity duration-200 flex items-end justify-center">
+            <span className="text-white text-lg font-semibold pb-2">{character}</span>
+          </div>
+          <Image
+            src={`./images/${character}.webp`}
+            width={150}
+            height={150}
+            alt={character}
+            className="rounded-lg shadow-md"
+          />
+        </div>
+      ))}
+    </div>
+  ), []);
 
   return (
-    <div className="p-4">
-      <div className="flex flex-row">
-        <h1 className="text-2xl font-bold mb-4">Deadlock Draft Pick</h1>{" "}
-        <Button
-          onClick={reset}
-          className="ml-4 text-xl font-semibold"
-          style={{ backgroundColor: "red" }}
-        >
-          reset
-        </Button>
-      </div>
-      <div className="flex justify-between mb-4 gap-4">
-        <Card className="w-1/2">
-          <CardHeader>
-            <h2 className="text-xl font-semibold">Amber</h2>
-          </CardHeader>
-          <CardContent>
-            <ul>
-              {amberTeam.map((character, index) => (
-                <li key={index}>{character}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-        <Card className="w-1/2">
-          <CardHeader>
-            <h2 className="text-xl font-semibold">Sapphire</h2>
-          </CardHeader>
-          <CardContent>
-            <ul>
-              {sapphireTeam.map((character, index) => (
-                <li key={index}>{character}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-      {!draftEnded ? (
-        <div className="flex flex-row mb-4">
-          <Button
-            onClick={() => setBanMode(!banMode)}
-            className="text-xl font-semibold"
-            style={{ backgroundColor: banMode ? "red" : "green" }}
-          >
-            <h2 className="text-xl font-semibold">
-              {banMode ? "Ban" : "Pick"}
-            </h2>
+    <div className="p-4 max-w-7xl mx-auto bg-gradient-to-br from-gray-900 to-slate-900 min-h-screen text-white">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold mb-4 sm:mb-0 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+          Deadlock Draft Pick
+        </h1>
+        <div className="space-x-2">
+          <Button onClick={undo} variant="outline" size="sm" disabled={draftStates.length <= 1}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Undo
           </Button>
-          <h3 className="self-center pl-4">Toggle Pick/Ban Mode</h3>
+          <Button onClick={reset} variant="destructive" size="sm">
+            <RotateCcw className="mr-2 h-4 w-4" /> Reset
+          </Button>
         </div>
-      ) : null}
-
-      <div>
-        {!draftEnded ? (
-          <>
-            <h2 className="text-xl font-semibold mb-2">
-              {currentTeam}s turn to pick
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10  gap-4 justify-items-center">
-              {availableCharacters.map((character) => (
-                <div
-                  onClick={() => handlePick(character)}
-                  style={{ borderColor: "white", borderWidth: 2 }}
-                  key={character}
-                >
-                  <CardHeader>{character}</CardHeader>
-                  <Image
-                    src={`./images/${character}.webp`}
-                    width={150}
-                    height={150}
-                    alt={character}
-                  />
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <h2 className="text-xl font-semibold mt-4">Draft has ended</h2>
-          </>
-        )}
-
-        {bannedCharacters.length > 0 ? (
-          <>
-            <h2 className="text-xl font-semibold mt-4">Banned Characters</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 mt-4  gap-4 justify-items-center">
-              {bannedCharacters.map((character) => (
-                <div
-                  style={{ borderColor: "white", borderWidth: 2 }}
-                  key={character}
-                >
-                  <CardHeader>{character}</CardHeader>
-                  <Image
-                    src={`./images/${character}.webp`}
-                    width={150}
-                    height={150}
-                    alt={character}
-                  />
-                </div>
-              ))}
-            </div>
-          </>
-        ) : null}
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {renderTeam("Amber")}
+        {renderTeam("Sapphire")}
+      </div>
+
+      {!draftEnded ? (
+        <>
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold mb-2 sm:mb-0">
+              {currentTeam}'s turn to {banMode ? 'ban' : 'pick'}
+            </h2>
+            <Button
+              onClick={toggleBanMode}
+              variant={banMode ? "destructive" : "default"}
+              className="w-full sm:w-auto"
+            >
+              {banMode ? "Switch to Pick Mode" : "Switch to Ban Mode"}
+            </Button>
+          </div>
+
+          <Tabs defaultValue="available" className="mb-6">
+            <TabsList className="grid w-full grid-cols-2 bg-slate-800">
+              <TabsTrigger value="available" className="data-[state=active]:bg-slate-700">Available Characters</TabsTrigger>
+              <TabsTrigger value="banned" className="data-[state=active]:bg-slate-700">Banned Characters</TabsTrigger>
+            </TabsList>
+            <TabsContent value="available" className="mt-4">
+              {renderCharacterGrid(availableCharacters, handlePick)}
+            </TabsContent>
+            <TabsContent value="banned" className="mt-4">
+              {renderCharacterGrid(bannedCharacters)}
+            </TabsContent>
+          </Tabs>
+        </>
+      ) : (
+        <>
+          <Card className="bg-gradient-to-br from-green-500 to-emerald-700 border-none shadow-lg p-6 text-center mb-6">
+            <h2 className="text-3xl font-bold text-white">Draft has ended</h2>
+            <p className="text-white mt-2">Congratulations to both teams!</p>
+          </Card>
+
+          {bannedCharacters.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-2xl font-semibold mb-4">Banned Characters</h3>
+              {renderCharacterGrid(bannedCharacters)}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
