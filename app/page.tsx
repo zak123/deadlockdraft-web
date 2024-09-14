@@ -314,6 +314,7 @@ ${bannedCharacters.length > 0 ? bannedCharacters.join(", ") : "None"}
           )}
         </>
       )}
+      <h2>Created by zak123</h2>
     </div>
   );
 };
