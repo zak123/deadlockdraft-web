@@ -7,11 +7,15 @@ to build static site
 
 feel free to PR any features you'd like to see, some I have thought of
 
-- Discord webhook setting that posts the teams to a channel when draft is done
-- Undo button
-- Better UI, maybe mimicking the game somehow in a thematic, but simple way
+- ~Undo button~
+- ~Better UI~
+- ~Copy paste results~
+- ~Responsive~
+- Multiplayer (Two captains join a session and take turns picking)
 - Auto ban phases
+- Discord webhook setting that posts the teams to a channel when draft is done
 
-I want to keep this web app as simple as possible so I want to avoid forcing anyone to interact with the site other than 1 person managing the 12 man.
+
+I want to keep this web app as simple as possible, and will keep ads and account logins off of this project.
 
 runs CI on every commit to master and deploys to deadlockdraft.com
