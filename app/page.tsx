@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -111,9 +111,10 @@ const DraftPick: React.FC = () => {
             character,
           ];
         } else {
-          const teamKey =
-            `${currentTeam.toLowerCase()}Team` as keyof DraftState;
-          newState[teamKey] = [...(prevState[teamKey] as string[]), character];
+          const teamKey = `${currentTeam.toLowerCase()}Team` as
+            | "amberTeam"
+            | "sapphireTeam";
+          newState[teamKey] = [...prevState[teamKey], character];
         }
 
         newState.availableCharacters = prevState.availableCharacters.filter(
