@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, RotateCcw, Copy, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const characters = [
   "abrams",
@@ -44,6 +51,13 @@ interface DraftState {
   banMode: boolean;
 }
 
+const draftOrderOptions = [
+  "1 2 2 1 1 1 1 1 1 1",
+  "1 1 1 1 1 1 1 1 1 1 1 1",
+  "1 2 2 2 2 2 1",
+  "1 2 2 2 2 1 1 1",
+];
+
 const DraftPick: React.FC = () => {
   const [draftStates, setDraftStates] = useState<DraftState[]>([
     {
@@ -56,6 +70,12 @@ const DraftPick: React.FC = () => {
     },
   ]);
   const [isCopied, setIsCopied] = useState(false);
+  const [draftOrder, setDraftOrder] = useState<number[]>(
+    draftOrderOptions[0].split(" ").map(Number)
+  );
+  const [selectedDraftOrder, setSelectedDraftOrder] = useState(
+    draftOrderOptions[0]
+  );
 
   const currentState = draftStates[draftStates.length - 1];
   const {
@@ -67,7 +87,9 @@ const DraftPick: React.FC = () => {
     banMode,
   } = currentState;
 
-  const draftEnded = sapphireTeam.length + amberTeam.length === 12;
+  const draftEnded =
+    sapphireTeam.length + amberTeam.length ===
+    draftOrder.reduce((a, b) => a + b, 0);
 
   const updateDraftState = useCallback(
     (updater: (prevState: DraftState) => DraftState) => {
@@ -81,23 +103,43 @@ const DraftPick: React.FC = () => {
 
   const handlePick = useCallback(
     (character: string) => {
-      updateDraftState((prevState) => ({
-        ...prevState,
-        [banMode ? "bannedCharacters" : `${currentTeam.toLowerCase()}Team`]: [
-          ...(prevState[
-            banMode
-              ? "bannedCharacters"
-              : (`${currentTeam.toLowerCase()}Team` as keyof DraftState)
-          ] as string[]),
-          character,
-        ],
-        currentTeam: prevState.currentTeam === "Amber" ? "Sapphire" : "Amber",
-        availableCharacters: prevState.availableCharacters.filter(
+      updateDraftState((prevState) => {
+        const newState = { ...prevState };
+        if (banMode) {
+          newState.bannedCharacters = [
+            ...prevState.bannedCharacters,
+            character,
+          ];
+        } else {
+          const teamKey =
+            `${currentTeam.toLowerCase()}Team` as keyof DraftState;
+          newState[teamKey] = [...(prevState[teamKey] as string[]), character];
+        }
+
+        newState.availableCharacters = prevState.availableCharacters.filter(
           (c) => c !== character
-        ),
-      }));
+        );
+
+        // Determine next team based on draft order
+        const totalPicks =
+          newState.amberTeam.length + newState.sapphireTeam.length;
+        let picksInCurrentRound = 0;
+        let nextTeam = prevState.currentTeam;
+
+        for (let i = 0; i < draftOrder.length; i++) {
+          if (picksInCurrentRound + draftOrder[i] > totalPicks) {
+            nextTeam = i % 2 === 0 ? "Amber" : "Sapphire";
+            break;
+          }
+          picksInCurrentRound += draftOrder[i];
+        }
+
+        newState.currentTeam = nextTeam;
+
+        return newState;
+      });
     },
-    [banMode, currentTeam, updateDraftState]
+    [banMode, currentTeam, updateDraftState, draftOrder]
   );
 
   const toggleBanMode = useCallback(() => {
@@ -140,6 +182,9 @@ ${sapphireTeam.join(", ")}
 
 Banned Characters:
 ${bannedCharacters.length > 0 ? bannedCharacters.join(", ") : "None"}
+
+Draft Order:
+${draftOrder.join(" ")}
     `.trim();
 
     navigator.clipboard
@@ -160,7 +205,7 @@ ${bannedCharacters.length > 0 ? bannedCharacters.join(", ") : "None"}
           variant: "destructive",
         });
       });
-  }, [amberTeam, sapphireTeam, bannedCharacters]);
+  }, [amberTeam, sapphireTeam, bannedCharacters, draftOrder]);
 
   const renderTeam = useCallback(
     (team: Team) => (
@@ -218,6 +263,16 @@ ${bannedCharacters.length > 0 ? bannedCharacters.join(", ") : "None"}
     []
   );
 
+  const handleDraftOrderChange = useCallback((value: string) => {
+    setSelectedDraftOrder(value);
+    const newOrder = value.split(" ").map(Number);
+    setDraftOrder(newOrder);
+    toast({
+      title: "Draft order updated",
+      description: `New draft order: ${value}`,
+    });
+  }, []);
+
   return (
     <div className="p-4 max-w-7xl mx-auto bg-gradient-to-br from-gray-900 to-slate-900 min-h-screen text-white">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
@@ -237,6 +292,25 @@ ${bannedCharacters.length > 0 ? bannedCharacters.join(", ") : "None"}
             <RotateCcw className="mr-2 h-4 w-4" /> Reset
           </Button>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Set Draft Order</h2>
+        <Select
+          onValueChange={handleDraftOrderChange}
+          value={selectedDraftOrder}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select draft order" />
+          </SelectTrigger>
+          <SelectContent>
+            {draftOrderOptions.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
