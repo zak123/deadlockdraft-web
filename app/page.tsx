@@ -28,6 +28,7 @@ const characters = [
   "lady geist",
   "lash",
   "mcginnis",
+  "mirage",
   "mo krill",
   "paradox",
   "pocket",
